@@ -1,0 +1,58 @@
+name: job-router
+run-name: jr-${{ inputs.job_id }}-s${{ inputs.shard_index }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      job_id:
+        description: Router job id
+        required: true
+        type: string
+      command_json:
+        description: JSON array command
+        required: true
+        type: string
+      timeout_minutes:
+        description: Timeout in minutes (metadata)
+        required: true
+        type: string
+      shard_index:
+        description: Zero-based shard index
+        required: true
+        type: string
+      shard_count:
+        description: Number of shards
+        required: true
+        type: string
+      artifact_name:
+        description: Artifact name
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run job
+        env:
+          JR_JOB_ID: ${{ inputs.job_id }}
+          JR_COMMAND_JSON: ${{ inputs.command_json }}
+          JR_SHARD_INDEX: ${{ inputs.shard_index }}
+          JR_SHARD_COUNT: ${{ inputs.shard_count }}
+        run: python scripts/run_job.py
+      - name: Upload result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: jr-artifacts
+          if-no-files-found: ignore
+          retention-days: 7
