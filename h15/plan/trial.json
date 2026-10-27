@@ -1,0 +1,18 @@
+{
+ "wave": 0,
+ "note": "S1b 시험 칸: 1종목 1표 1달 (um metrics BTCUSDT 2020-09)",
+ "dirs": {
+  "um|metrics": "data/futures/um/daily/metrics/{sym}/"
+ },
+ "cells": [
+  {
+   "id": "um|metrics|BTCUSDT|2020-09",
+   "market": "um",
+   "dataset": "metrics",
+   "table": "metrics",
+   "sym": "BTCUSDT",
+   "month": "2020-09",
+   "nsrc": 30
+  }
+ ]
+}
