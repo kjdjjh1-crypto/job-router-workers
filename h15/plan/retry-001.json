@@ -1,0 +1,60 @@
+{
+ "wave": "retry-001",
+ "note": "물결1 실패 칸 4건 — 같은 칸 정의로 1회 재시도 (지시서 §4 S1b 6)",
+ "dirs": {
+  "cm|bookDepth": "data/futures/cm/daily/bookDepth/{sym}/",
+  "cm|fundingRate": "data/futures/cm/monthly/fundingRate/{sym}/",
+  "cm|indexPriceKlines": "data/futures/cm/monthly/indexPriceKlines/{sym}/1m/",
+  "cm|klines": "data/futures/cm/monthly/klines/{sym}/1m/",
+  "cm|markPriceKlines": "data/futures/cm/monthly/markPriceKlines/{sym}/1m/",
+  "cm|metrics": "data/futures/cm/daily/metrics/{sym}/",
+  "cm|premiumIndexKlines": "data/futures/cm/monthly/premiumIndexKlines/{sym}/1m/",
+  "option|BVOLIndex": "data/option/daily/BVOLIndex/{sym}/",
+  "spot|klines": "data/spot/monthly/klines/{sym}/1m/",
+  "um|bookDepth": "data/futures/um/daily/bookDepth/{sym}/",
+  "um|fundingRate": "data/futures/um/monthly/fundingRate/{sym}/",
+  "um|indexPriceKlines": "data/futures/um/monthly/indexPriceKlines/{sym}/1m/",
+  "um|klines": "data/futures/um/monthly/klines/{sym}/1m/",
+  "um|markPriceKlines": "data/futures/um/monthly/markPriceKlines/{sym}/1m/",
+  "um|metrics": "data/futures/um/daily/metrics/{sym}/",
+  "um|premiumIndexKlines": "data/futures/um/monthly/premiumIndexKlines/{sym}/1m/"
+ },
+ "cells": [
+  {
+   "id": "um|bd|币安人生USDT|2025-11",
+   "market": "um",
+   "dataset": "bookDepth",
+   "table": "bd",
+   "sym": "币安人生USDT",
+   "month": "2025-11",
+   "nsrc": 30
+  },
+  {
+   "id": "um|klines|币安人生USDT|2025-12",
+   "market": "um",
+   "dataset": "klines",
+   "table": "klines",
+   "sym": "币安人生USDT",
+   "month": "2025-12",
+   "nsrc": 1
+  },
+  {
+   "id": "um|metrics|NEARBUSD|2022-10",
+   "market": "um",
+   "dataset": "metrics",
+   "table": "metrics",
+   "sym": "NEARBUSD",
+   "month": "2022-10",
+   "nsrc": 31
+  },
+  {
+   "id": "um|metrics|币安人生USDT|2025-10",
+   "market": "um",
+   "dataset": "metrics",
+   "table": "metrics",
+   "sym": "币安人生USDT",
+   "month": "2025-10",
+   "nsrc": 12
+  }
+ ]
+}
