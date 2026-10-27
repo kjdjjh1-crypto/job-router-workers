@@ -9,7 +9,8 @@ from datetime import datetime, timezone
 BIN_MS = 900000
 SPAN_START = int(datetime(2017, 7, 1, tzinfo=timezone.utc).timestamp() * 1000) // BIN_MS * BIN_MS
 SPAN_END = int(datetime(2026, 1, 1, tzinfo=timezone.utc).timestamp() * 1000)
-BASE = "https://data.binance.vision/"
+S3 = "https://s3-ap-northeast-1.amazonaws.com/data.binance.vision"
+DL = "https://data.binance.vision/"
 
 TABLES = {
     "klines": ["o", "h", "l", "c", "quote_volume", "count", "taker_buy_quote"],
@@ -206,10 +207,23 @@ def parse_csv(text, kind, cells):
             raise SystemExit("unknown kind " + kind)
 
 
-def listing_names(dir_url):
-    raw = fetch(dir_url).decode("utf-8", "replace")
+def listing_names(dir_key):
+    # 거래소 공개 목록 = S3 ListObjects (h8_list.mjs와 같은 승인 URL). 마커로 이어 받는다.
     import re
-    return sorted(set(re.findall(r'([A-Za-z0-9_.\-]+\.zip(?:\.CHECKSUM)?)', raw)))
+    import urllib.parse
+    names, marker = [], ""
+    while True:
+        url = S3 + "?delimiter=/&prefix=" + urllib.parse.quote(dir_key)
+        if marker:
+            url += "&marker=" + urllib.parse.quote(marker)
+        raw = fetch(url).decode("utf-8", "replace")
+        keys = re.findall(r"<Key>([^<]+)</Key>", raw)
+        names += [k.split("/")[-1] for k in keys if k != dir_key and "/" not in k[len(dir_key):]]
+        if "<IsTruncated>true</IsTruncated>" in raw and keys:
+            marker = keys[-1]
+        else:
+            break
+    return sorted(set(n for n in names if n))
 
 
 def run_cell(cell, dirs, out_dir):
@@ -221,8 +235,8 @@ def run_cell(cell, dirs, out_dir):
     dir_tpl = dirs.get(cell["market"] + "|" + cell["dataset"])
     if not dir_tpl:
         raise SystemExit("no dir template for " + cell["market"] + "|" + cell["dataset"])
-    dir_url = BASE + dir_tpl.replace("{sym}", cell["sym"])
-    names = listing_names(dir_url)
+    dir_key = dir_tpl.replace("{sym}", cell["sym"])
+    names = listing_names(dir_key)
     skipped_2026 = sum(1 for n in names if "-2026-" in n)
     month = "-" + cell["month"]
     zips = [n for n in names if n.endswith(".zip") and month in n and "-2026-" not in n]
@@ -231,10 +245,10 @@ def run_cell(cell, dirs, out_dir):
     have_cs = set(names)
 
     def pull(name):
-        buf = fetch(dir_url + name)
+        buf = fetch(DL + dir_key + name)
         cs_ok = None
         if name + ".CHECKSUM" in have_cs:
-            cs = fetch(dir_url + name + ".CHECKSUM").decode().split()[0]
+            cs = fetch(DL + dir_key + name + ".CHECKSUM").decode().split()[0]
             cs_ok = hashlib.sha256(buf).hexdigest() == cs
         return buf, cs_ok
 
@@ -242,7 +256,7 @@ def run_cell(cell, dirs, out_dir):
     with ThreadPoolExecutor(max_workers=4) as ex:
         results = list(ex.map(pull, zips))
     for name, (buf, cs_ok) in zip(zips, results):
-        urls.append(dir_url + name)
+        urls.append(DL + dir_key + name)
         if cs_ok is False:
             raise SystemExit("CHECKSUM mismatch " + name)
         if cs_ok is True:
