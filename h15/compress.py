@@ -187,7 +187,9 @@ def parse_csv(text, kind, cells):
             cells.add(t, (num(c[4]), num(c[2]), num(c[3])))
         elif kind == "metrics":
             g = lambda name_: num(c[idx[name_]]) if idx and name_ in idx else float("nan")
-            t = int(datetime.strptime(c[idx["create_time"]].strip(), "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc).timestamp() * 1000)
+            raw_t = c[idx["create_time"]].strip()
+            ts = datetime.strptime(raw_t, "%Y-%m-%d %H:%M:%S") if len(raw_t) > 10 else datetime.strptime(raw_t[:10], "%Y-%m-%d")
+            t = int(ts.replace(tzinfo=timezone.utc).timestamp() * 1000)
             ga = g("count_long_short_ratio")
             if ga != ga:
                 ga = g("sum_global_long_short_ratio")
@@ -198,7 +200,9 @@ def parse_csv(text, kind, cells):
             t = to_ms(c[idx["calc_time"]])
             cells.add(t, (num(c[idx["last_funding_rate"]]), num(c[idx["funding_interval_hours"]])))
         elif kind == "bd":
-            t = int(datetime.strptime(c[idx["timestamp"]].strip(), "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc).timestamp() * 1000)
+            raw_t = c[idx["timestamp"]].strip()
+            ts0 = datetime.strptime(raw_t, "%Y-%m-%d %H:%M:%S") if len(raw_t) > 10 else datetime.strptime(raw_t[:10], "%Y-%m-%d")
+            t = int(ts0.replace(tzinfo=timezone.utc).timestamp() * 1000)
             cells.add(t, (t, num(c[idx["percentage"]]), num(c[idx["depth"]]), num(c[idx["notional"]])))
         elif kind == "bv":
             t = to_ms(c[0])
@@ -245,10 +249,12 @@ def run_cell(cell, dirs, out_dir):
     have_cs = set(names)
 
     def pull(name):
-        buf = fetch(DL + dir_key + name)
+        import urllib.parse
+        u = DL + urllib.parse.quote(dir_key + name)
+        buf = fetch(u)
         cs_ok = None
         if name + ".CHECKSUM" in have_cs:
-            cs = fetch(DL + dir_key + name + ".CHECKSUM").decode().split()[0]
+            cs = fetch(DL + urllib.parse.quote(dir_key + name + ".CHECKSUM")).decode().split()[0]
             cs_ok = hashlib.sha256(buf).hexdigest() == cs
         return buf, cs_ok
 
